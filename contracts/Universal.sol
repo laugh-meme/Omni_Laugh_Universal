@@ -23,8 +23,8 @@ contract OmniLaughToken is
     * @dev Total supply of the token
     */
     uint256 public constant TOTAL_SUPPLY = 5_000_000_000_000 * 10**18; // 5 Trilyon
-    uint256 internal taxPercentage;
-    uint256 internal taxCollected;
+    uint256 public taxPercentage;
+    uint256 public taxCollected;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -32,7 +32,6 @@ contract OmniLaughToken is
     }
 
     function initialize(
-        address initialOwner,
         string memory name,
         string memory symbol,
         address payable gatewayAddress,
@@ -42,13 +41,13 @@ contract OmniLaughToken is
         __ERC20_init(name, symbol);
         __ERC20Burnable_init();
         __ERC20Pausable_init();
-        __Ownable_init(initialOwner);
+        __Ownable_init(_msgSender());
         __UUPSUpgradeable_init();
         __UniversalTokenCore_init(gatewayAddress, gasLimit, uniswapRouterAddress);
 
         taxPercentage = 1;
         taxCollected = 0;
-        _mint(initialOwner, TOTAL_SUPPLY);
+        _mint(_msgSender(), TOTAL_SUPPLY);
     }
 
     /**
@@ -95,11 +94,15 @@ contract OmniLaughToken is
         taxCollected -= amount;
     }
 
-
-    function _update(address from, address to, uint256 value) internal override(ERC20Upgradeable, ERC20PausableUpgradeable) {
-        super._update(from, to, value);
+    /**
+    * @notice Sets the setUniswapRouter address.
+    * @dev Can only be called by the contract owner.
+    * @param uniswapRouterAddress The address of the uniswap router.
+    */
+    function setUniswapRouter(address uniswapRouterAddress) external onlyOwner() {
+        if (uniswapRouterAddress == address(0)) revert InvalidAddress();
+        uniswapRouter = uniswapRouterAddress;
     }
-
 
     function pause() public onlyOwner {
         _pause();
@@ -109,11 +112,10 @@ contract OmniLaughToken is
         _unpause();
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
-        _mint(to, amount);
+    function _update(address from, address to, uint256 value) internal override(ERC20Upgradeable, ERC20PausableUpgradeable) {
+        super._update(from, to, value);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-
 
 }

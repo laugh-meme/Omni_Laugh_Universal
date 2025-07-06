@@ -38,6 +38,21 @@ const config: HardhatUserConfig = {
       accounts: [process.env.PRIVATE_KEY],
     },
   },
+  etherscan: {
+    apiKey: {
+      'zeta_testnet': 'empty'
+    },
+    customChains: [
+      {
+        network: "zeta_testnet",
+        chainId: 7001,
+        urls: {
+          apiURL: "https://zetachain-testnet.blockscout.com/api",
+          browserURL: "https://zetachain-testnet.blockscout.com"
+        }
+      }
+    ],
+  },
 };
 
 export default config;
